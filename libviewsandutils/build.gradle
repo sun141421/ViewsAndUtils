@@ -1,7 +1,11 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
+
+group = 'com.speedandroid.libviewsandutils'
+version = 'V0.0.1'
 
 android {
     namespace 'com.speedandroid.libviewsandutils'
@@ -33,9 +37,21 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.User:Repo:Tag'
-
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.speedandroid'
+                artifactId = 'libviewsandutils'
+                version = 'V0.0.1'
+            }
+        }
+    }
 }
