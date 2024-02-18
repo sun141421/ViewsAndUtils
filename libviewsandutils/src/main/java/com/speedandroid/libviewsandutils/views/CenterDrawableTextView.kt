@@ -41,31 +41,23 @@ class CenterDrawableTextView @JvmOverloads constructor(context: Context, attrs: 
         drawables[TOP] = array.getDrawable(R.styleable.CenterDrawableTextView_topDrawable)
         drawables[RIGHT] = array.getDrawable(R.styleable.CenterDrawableTextView_rightDrawable)
         drawables[BOTTOM] = array.getDrawable(R.styleable.CenterDrawableTextView_bottomDrawable)
-        val defaultLeftWidth = safeGetIntrinsicWidth(drawables[LEFT])
+        val defaultLeftWidth = drawables[LEFT]?.intrinsicWidth ?: 0
         widths[LEFT] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_leftDrawableWidth, defaultLeftWidth)
-        val defaultTopWidth = safeGetIntrinsicWidth(drawables[TOP])
+        val defaultTopWidth = drawables[TOP]?.intrinsicWidth ?: 0
         widths[TOP] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_topDrawableWidth, defaultTopWidth)
-        val defaultRightWidth = safeGetIntrinsicWidth(drawables[RIGHT])
+        val defaultRightWidth = drawables[RIGHT]?.intrinsicWidth ?: 0
         widths[RIGHT] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_rightDrawableWidth, defaultRightWidth)
-        val defaultBottomWidth = safeGetIntrinsicWidth(drawables[BOTTOM])
+        val defaultBottomWidth = drawables[BOTTOM]?.intrinsicWidth ?: 0
         widths[BOTTOM] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_bottomDrawableWidth, defaultBottomWidth)
-        val defaultLeftHeight = safeGetIntrinsicHeight(drawables[LEFT])
+        val defaultLeftHeight = drawables[LEFT]?.intrinsicHeight ?: 0
         heights[LEFT] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_leftDrawableHeight, defaultLeftHeight)
-        val defaultTopHeight = safeGetIntrinsicHeight(drawables[TOP])
+        val defaultTopHeight = drawables[TOP]?.intrinsicHeight ?: 0
         heights[TOP] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_topDrawableHeight, defaultTopHeight)
-        val defaultRightHeight = safeGetIntrinsicHeight(drawables[RIGHT])
+        val defaultRightHeight = drawables[RIGHT]?.intrinsicHeight ?: 0
         heights[RIGHT] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_rightDrawableHeight, defaultRightHeight)
-        val defaultBottomHeight = safeGetIntrinsicHeight(drawables[BOTTOM])
+        val defaultBottomHeight = drawables[BOTTOM]?.intrinsicHeight ?: 0
         heights[BOTTOM] = array.getDimensionPixelSize(R.styleable.CenterDrawableTextView_bottomDrawableHeight, defaultBottomHeight)
         array.recycle()
-    }
-
-    private fun safeGetIntrinsicWidth(drawable: Drawable?): Int {
-        return drawable?.intrinsicWidth ?: 0
-    }
-
-    private fun safeGetIntrinsicHeight(drawable: Drawable?): Int {
-        return drawable?.intrinsicHeight ?: 0
     }
 
 
@@ -91,7 +83,7 @@ class CenterDrawableTextView @JvmOverloads constructor(context: Context, attrs: 
         super.onDraw(canvas)
         val centerX = ((width + paddingLeft - paddingRight) / 2).toFloat()
         val centerY = ((height + paddingTop - paddingBottom) / 2).toFloat()
-        val halfTextWidth = paint.measureText(safeToString(text).ifEmpty { safeToString(hint) }) / 2
+        val halfTextWidth = paint.measureText((text?.toString() ?: "").ifEmpty { hint?.toString() ?: "" }) / 2
         val fontMetrics = paint.fontMetrics
         val halfTextHeight = (fontMetrics.descent - fontMetrics.ascent) / 2
         if (drawables[LEFT] != null) {
@@ -148,14 +140,10 @@ class CenterDrawableTextView @JvmOverloads constructor(context: Context, attrs: 
         }
     }
 
-    private fun safeToString(text: CharSequence?): String {
-        return text?.toString() ?: ""
-    }
-
     private fun translateText(canvas: Canvas, drawablePadding: Int) {
         var translateWidth = 0
         if (drawables[LEFT] != null && drawables[RIGHT] != null) {
-            translateWidth = (widths[0] - widths[RIGHT]) / 2
+            translateWidth = (widths[LEFT] - widths[RIGHT]) / 2
         } else if (drawables[LEFT] != null) {
             translateWidth = (widths[LEFT] + drawablePadding) / 2
         } else if (drawables[RIGHT] != null) {
@@ -177,5 +165,28 @@ class CenterDrawableTextView @JvmOverloads constructor(context: Context, attrs: 
         for (drawable in drawables) {
             drawable?.setState(drawableState)
         }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        var requireWidth = measuredWidth
+        if (drawables[LEFT] != null) {
+            requireWidth += widths[LEFT] + compoundDrawablePadding
+        }
+        if (drawables[RIGHT] != null) {
+            requireWidth += widths[RIGHT] + compoundDrawablePadding
+        }
+        val newWidthMeasureSpec = resolveSizeAndState(requireWidth, widthMeasureSpec, 1)
+
+        var requireHeight = measuredHeight
+        if (drawables[TOP] != null) {
+            requireHeight += heights[TOP] + compoundDrawablePadding
+        }
+        if (drawables[BOTTOM] != null) {
+            requireHeight += heights[BOTTOM] + compoundDrawablePadding
+        }
+
+        val newHeightMeasureSpec = resolveSizeAndState(requireHeight, heightMeasureSpec, 1)
+        setMeasuredDimension(newWidthMeasureSpec, newHeightMeasureSpec)
     }
 }
